@@ -1,0 +1,25 @@
+{
+  "name": "offerpilot-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OfferPilot: full-stack job application intelligence platform.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm --workspace @offerpilot/api run dev\" \"npm --workspace @offerpilot/web run dev\"",
+    "dev:api": "npm --workspace @offerpilot/api run dev",
+    "dev:web": "npm --workspace @offerpilot/web run dev",
+    "build": "npm --workspaces run build",
+    "typecheck": "npm --workspaces run typecheck",
+    "test": "npm --workspace @offerpilot/api run test",
+    "lint": "npm --workspaces run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

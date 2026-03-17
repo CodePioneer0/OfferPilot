@@ -1,0 +1,34 @@
+{
+  "counters": {
+    "users": 1,
+    "applications": 1,
+    "interviewEvents": 0
+  },
+  "users": [
+    {
+      "id": 1,
+      "name": "Sayak",
+      "email": "sayaksen8017@gmail.com",
+      "passwordHash": "$2a$10$QAPlZy1CVJmpbf94z1Y6mer.2FVj7jsKuTc3.n9uynsCzP6GTVUO.",
+      "createdAt": "2026-03-17T17:20:43.560Z"
+    }
+  ],
+  "applications": [
+    {
+      "id": 1,
+      "userId": 1,
+      "company": "Google",
+      "role": "Sde",
+      "location": "bangalore",
+      "jobUrl": "http://www.sample.org/head",
+      "stage": "Technical Round",
+      "salaryMin": 10000,
+      "salaryMax": 59999,
+      "appliedOn": "2026-03-17",
+      "notes": null,
+      "createdAt": "2026-03-17T17:21:55.555Z",
+      "updatedAt": "2026-03-17T17:22:07.090Z"
+    }
+  ],
+  "interviewEvents": []
+}
