@@ -1,5 +1,6 @@
-import { initializeStore } from "./client.js";
+import { connectDatabase, ensureDatabaseIndexes } from "./client.js";
 
-export function initializeDatabase(): void {
-  initializeStore();
+export async function initializeDatabase(): Promise<void> {
+  await connectDatabase();
+  await ensureDatabaseIndexes();
 }

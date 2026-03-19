@@ -1,6 +1,6 @@
 import type { CreateInterviewEventPayload, InterviewEvent } from "@offerpilot/shared";
 
-import { getNextId, readStore, runInStoreTransaction, type InterviewEventEntity } from "../db/client.js";
+import { getNextId, interviewEventsCollection, type InterviewEventEntity } from "../db/client.js";
 
 function mapEvent(eventItem: InterviewEventEntity): InterviewEvent {
   return {
@@ -13,54 +13,40 @@ function mapEvent(eventItem: InterviewEventEntity): InterviewEvent {
   };
 }
 
-export function createInterviewEvent(
+export async function createInterviewEvent(
   userId: number,
   applicationId: number,
   payload: CreateInterviewEventPayload
-): InterviewEvent {
-  return runInStoreTransaction((store) => {
-    const now = new Date().toISOString();
+): Promise<InterviewEvent> {
+  const now = new Date().toISOString();
 
-    const eventItem: InterviewEventEntity = {
-      id: getNextId("interviewEvents", store),
-      userId,
-      applicationId,
-      type: payload.type,
-      description: payload.description,
-      occurredOn: payload.occurredOn,
-      createdAt: now
-    };
+  const eventItem: InterviewEventEntity = {
+    id: await getNextId("interviewEvents"),
+    userId,
+    applicationId,
+    type: payload.type,
+    description: payload.description,
+    occurredOn: payload.occurredOn,
+    createdAt: now
+  };
 
-    store.interviewEvents.push(eventItem);
+  await interviewEventsCollection().insertOne(eventItem);
+  return mapEvent(eventItem);
+}
 
-    return mapEvent(eventItem);
+export async function listInterviewEvents(userId: number, applicationId: number): Promise<InterviewEvent[]> {
+  const events = await interviewEventsCollection()
+    .find({ userId, applicationId })
+    .sort({ occurredOn: -1, createdAt: -1 })
+    .toArray();
+
+  return events.map(mapEvent);
+}
+
+export async function countInterviewsForMonth(userId: number, monthPrefix: string): Promise<number> {
+  return interviewEventsCollection().countDocuments({
+    userId,
+    type: "Interview",
+    occurredOn: { $regex: `^${monthPrefix}` }
   });
-}
-
-export function listInterviewEvents(userId: number, applicationId: number): InterviewEvent[] {
-  const store = readStore();
-
-  return store.interviewEvents
-    .filter((eventItem) => eventItem.userId === userId && eventItem.applicationId === applicationId)
-    .sort((left, right) => {
-      const dateDiff = Date.parse(right.occurredOn) - Date.parse(left.occurredOn);
-
-      if (dateDiff !== 0) {
-        return dateDiff;
-      }
-
-      return Date.parse(right.createdAt) - Date.parse(left.createdAt);
-    })
-    .map(mapEvent);
-}
-
-export function countInterviewsForMonth(userId: number, monthPrefix: string): number {
-  const store = readStore();
-
-  return store.interviewEvents.filter(
-    (eventItem) =>
-      eventItem.userId === userId &&
-      eventItem.type === "Interview" &&
-      eventItem.occurredOn.startsWith(monthPrefix)
-  ).length;
 }

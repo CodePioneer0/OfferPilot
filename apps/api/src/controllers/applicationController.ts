@@ -8,6 +8,7 @@ import {
   listApplications,
   updateApplication
 } from "../services/applicationService.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import { HttpError } from "../utils/httpError.js";
 
 function getUserId(req: Request): number {
@@ -32,42 +33,42 @@ function parseApplicationId(value: string | undefined): number {
   return parsed;
 }
 
-export function listApplicationsHandler(req: Request, res: Response): void {
+export const listApplicationsHandler = asyncHandler(async (req: Request, res: Response) => {
   const userId = getUserId(req);
-  const applications = listApplications(userId);
+  const applications = await listApplications(userId);
   res.status(200).json(applications);
-}
+});
 
-export function createApplicationHandler(req: Request, res: Response): void {
+export const createApplicationHandler = asyncHandler(async (req: Request, res: Response) => {
   const userId = getUserId(req);
-  const created = createApplication(userId, req.body);
+  const created = await createApplication(userId, req.body);
   res.status(201).json(created);
-}
+});
 
-export function updateApplicationHandler(req: Request, res: Response): void {
+export const updateApplicationHandler = asyncHandler(async (req: Request, res: Response) => {
   const userId = getUserId(req);
   const applicationId = parseApplicationId(req.params.id);
-  const updated = updateApplication(userId, applicationId, req.body);
+  const updated = await updateApplication(userId, applicationId, req.body);
   res.status(200).json(updated);
-}
+});
 
-export function deleteApplicationHandler(req: Request, res: Response): void {
+export const deleteApplicationHandler = asyncHandler(async (req: Request, res: Response) => {
   const userId = getUserId(req);
   const applicationId = parseApplicationId(req.params.id);
-  deleteApplication(userId, applicationId);
+  await deleteApplication(userId, applicationId);
   res.status(204).send();
-}
+});
 
-export function createApplicationEventHandler(req: Request, res: Response): void {
+export const createApplicationEventHandler = asyncHandler(async (req: Request, res: Response) => {
   const userId = getUserId(req);
   const applicationId = parseApplicationId(req.params.id);
-  const createdEvent = createApplicationEvent(userId, applicationId, req.body);
+  const createdEvent = await createApplicationEvent(userId, applicationId, req.body);
   res.status(201).json(createdEvent);
-}
+});
 
-export function listApplicationEventsHandler(req: Request, res: Response): void {
+export const listApplicationEventsHandler = asyncHandler(async (req: Request, res: Response) => {
   const userId = getUserId(req);
   const applicationId = parseApplicationId(req.params.id);
-  const events = listApplicationEvents(userId, applicationId);
+  const events = await listApplicationEvents(userId, applicationId);
   res.status(200).json(events);
-}
+});

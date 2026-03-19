@@ -24,7 +24,7 @@ It helps candidates track roles, pipeline stages, and interview activity while s
 
 - Frontend: React, TypeScript, Vite, custom responsive CSS.
 - Backend: Node.js, Express, TypeScript, Zod, JWT, bcrypt.
-- Data layer: file-backed JSON store with transactional write helper.
+- Data layer: MongoDB with indexed collections and atomic ID counters.
 - Testing: Vitest + Supertest integration tests.
 - Monorepo: npm workspaces (`apps/*`, `packages/*`).
 
@@ -109,4 +109,4 @@ The project was validated with:
 - Role-based collaboration for mentors or recruiters.
 - Notification engine for follow-up reminders.
 - Exportable reports for weekly job-search review.
-- PostgreSQL + migration tooling for multi-user deployment.
+- Automated migration scripts and backup workflows for production Mongo clusters.

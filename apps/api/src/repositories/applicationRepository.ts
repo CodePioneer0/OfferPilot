@@ -5,7 +5,7 @@ import type {
   UpdateApplicationPayload
 } from "@offerpilot/shared";
 
-import { getNextId, readStore, runInStoreTransaction, type ApplicationEntity } from "../db/client.js";
+import { applicationsCollection, getNextId, interviewEventsCollection, type ApplicationEntity } from "../db/client.js";
 
 function mapApplication(application: ApplicationEntity): Application {
   return {
@@ -24,165 +24,137 @@ function mapApplication(application: ApplicationEntity): Application {
   };
 }
 
-function sortByAppliedDate(applications: ApplicationEntity[]): ApplicationEntity[] {
-  return applications.sort((left, right) => {
-    const appliedDiff = Date.parse(right.appliedOn) - Date.parse(left.appliedOn);
+export async function listApplicationsByUser(userId: number): Promise<Application[]> {
+  const applications = await applicationsCollection()
+    .find({ userId })
+    .sort({ appliedOn: -1, createdAt: -1 })
+    .toArray();
 
-    if (appliedDiff !== 0) {
-      return appliedDiff;
-    }
-
-    return Date.parse(right.createdAt) - Date.parse(left.createdAt);
-  });
+  return applications.map(mapApplication);
 }
 
-export function listApplicationsByUser(userId: number): Application[] {
-  const store = readStore();
-  const ownedApplications = store.applications.filter((application) => application.userId === userId);
-
-  return sortByAppliedDate(ownedApplications).map(mapApplication);
-}
-
-export function getApplicationByIdForUser(applicationId: number, userId: number): Application | null {
-  const store = readStore();
-  const application = store.applications.find(
-    (candidate) => candidate.id === applicationId && candidate.userId === userId
-  );
+export async function getApplicationByIdForUser(
+  applicationId: number,
+  userId: number
+): Promise<Application | null> {
+  const application = await applicationsCollection().findOne({ id: applicationId, userId });
 
   return application ? mapApplication(application) : null;
 }
 
-export function createApplicationForUser(userId: number, payload: CreateApplicationPayload): Application {
-  return runInStoreTransaction((store) => {
-    const now = new Date().toISOString();
+export async function createApplicationForUser(
+  userId: number,
+  payload: CreateApplicationPayload
+): Promise<Application> {
+  const now = new Date().toISOString();
 
-    const application: ApplicationEntity = {
-      id: getNextId("applications", store),
-      userId,
-      company: payload.company,
-      role: payload.role,
-      location: payload.location ?? null,
-      jobUrl: payload.jobUrl ?? null,
-      stage: payload.stage,
-      salaryMin: payload.salaryMin ?? null,
-      salaryMax: payload.salaryMax ?? null,
-      appliedOn: payload.appliedOn,
-      notes: payload.notes ?? null,
-      createdAt: now,
-      updatedAt: now
-    };
+  const application: ApplicationEntity = {
+    id: await getNextId("applications"),
+    userId,
+    company: payload.company,
+    role: payload.role,
+    location: payload.location ?? null,
+    jobUrl: payload.jobUrl ?? null,
+    stage: payload.stage,
+    salaryMin: payload.salaryMin ?? null,
+    salaryMax: payload.salaryMax ?? null,
+    appliedOn: payload.appliedOn,
+    notes: payload.notes ?? null,
+    createdAt: now,
+    updatedAt: now
+  };
 
-    store.applications.push(application);
-
-    return mapApplication(application);
-  });
+  await applicationsCollection().insertOne(application);
+  return mapApplication(application);
 }
 
-export function updateApplicationForUser(
+export async function updateApplicationForUser(
   applicationId: number,
   userId: number,
   payload: UpdateApplicationPayload
-): Application | null {
-  return runInStoreTransaction((store) => {
-    const application = store.applications.find(
-      (candidate) => candidate.id === applicationId && candidate.userId === userId
-    );
+): Promise<Application | null> {
+  const updates: Partial<ApplicationEntity> = {
+    updatedAt: new Date().toISOString()
+  };
 
-    if (!application) {
-      return null;
-    }
+  if (payload.company !== undefined) {
+    updates.company = payload.company;
+  }
 
-    if (payload.company !== undefined) {
-      application.company = payload.company;
-    }
+  if (payload.role !== undefined) {
+    updates.role = payload.role;
+  }
 
-    if (payload.role !== undefined) {
-      application.role = payload.role;
-    }
+  if (payload.location !== undefined) {
+    updates.location = payload.location;
+  }
 
-    if (payload.location !== undefined) {
-      application.location = payload.location;
-    }
+  if (payload.jobUrl !== undefined) {
+    updates.jobUrl = payload.jobUrl;
+  }
 
-    if (payload.jobUrl !== undefined) {
-      application.jobUrl = payload.jobUrl;
-    }
+  if (payload.stage !== undefined) {
+    updates.stage = payload.stage;
+  }
 
-    if (payload.stage !== undefined) {
-      application.stage = payload.stage;
-    }
+  if (payload.salaryMin !== undefined) {
+    updates.salaryMin = payload.salaryMin;
+  }
 
-    if (payload.salaryMin !== undefined) {
-      application.salaryMin = payload.salaryMin;
-    }
+  if (payload.salaryMax !== undefined) {
+    updates.salaryMax = payload.salaryMax;
+  }
 
-    if (payload.salaryMax !== undefined) {
-      application.salaryMax = payload.salaryMax;
-    }
+  if (payload.appliedOn !== undefined) {
+    updates.appliedOn = payload.appliedOn;
+  }
 
-    if (payload.appliedOn !== undefined) {
-      application.appliedOn = payload.appliedOn;
-    }
+  if (payload.notes !== undefined) {
+    updates.notes = payload.notes;
+  }
 
-    if (payload.notes !== undefined) {
-      application.notes = payload.notes;
-    }
+  const updated = await applicationsCollection().findOneAndUpdate(
+    { id: applicationId, userId },
+    { $set: updates },
+    { returnDocument: "after" }
+  );
 
-    application.updatedAt = new Date().toISOString();
-
-    return mapApplication(application);
-  });
+  return updated ? mapApplication(updated) : null;
 }
 
-export function deleteApplicationForUser(applicationId: number, userId: number): boolean {
-  return runInStoreTransaction((store) => {
-    const beforeCount = store.applications.length;
+export async function deleteApplicationForUser(applicationId: number, userId: number): Promise<boolean> {
+  const deleteResult = await applicationsCollection().deleteOne({ id: applicationId, userId });
 
-    store.applications = store.applications.filter(
-      (application) => !(application.id === applicationId && application.userId === userId)
-    );
+  if (deleteResult.deletedCount === 0) {
+    return false;
+  }
 
-    if (store.applications.length === beforeCount) {
-      return false;
-    }
-
-    store.interviewEvents = store.interviewEvents.filter((eventItem) => eventItem.applicationId !== applicationId);
-    return true;
-  });
+  await interviewEventsCollection().deleteMany({ applicationId, userId });
+  return true;
 }
 
-export function countApplicationsForUser(userId: number): number {
-  const store = readStore();
-  return store.applications.filter((application) => application.userId === userId).length;
+export async function countApplicationsForUser(userId: number): Promise<number> {
+  return applicationsCollection().countDocuments({ userId });
 }
 
-export function countApplicationsByStages(userId: number, stages: ApplicationStage[]): number {
+export async function countApplicationsByStages(userId: number, stages: ApplicationStage[]): Promise<number> {
   if (stages.length === 0) {
     return 0;
   }
 
-  const store = readStore();
-  const stageSet = new Set(stages);
-
-  return store.applications.filter(
-    (application) => application.userId === userId && stageSet.has(application.stage)
-  ).length;
+  return applicationsCollection().countDocuments({ userId, stage: { $in: stages } });
 }
 
-export function getStageBreakdown(userId: number): Array<{ stage: ApplicationStage; count: number }> {
-  const store = readStore();
-  const counts = new Map<ApplicationStage, number>();
+export async function getStageBreakdown(
+  userId: number
+): Promise<Array<{ stage: ApplicationStage; count: number }>> {
+  const rows = await applicationsCollection()
+    .aggregate<{ _id: ApplicationStage; count: number }>([
+      { $match: { userId } },
+      { $group: { _id: "$stage", count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ])
+    .toArray();
 
-  store.applications.forEach((application) => {
-    if (application.userId !== userId) {
-      return;
-    }
-
-    const current = counts.get(application.stage) ?? 0;
-    counts.set(application.stage, current + 1);
-  });
-
-  return Array.from(counts.entries())
-    .map(([stage, count]) => ({ stage, count }))
-    .sort((left, right) => right.count - left.count);
+  return rows.map((row) => ({ stage: row._id, count: row.count }));
 }

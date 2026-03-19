@@ -1,13 +1,14 @@
 import type { Request, Response } from "express";
 
 import { getDashboardSummary } from "../services/dashboardService.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import { HttpError } from "../utils/httpError.js";
 
-export function dashboardSummaryHandler(req: Request, res: Response): void {
+export const dashboardSummaryHandler = asyncHandler(async (req: Request, res: Response) => {
   if (!req.auth) {
     throw new HttpError(401, "Unauthorized");
   }
 
-  const summary = getDashboardSummary(req.auth.userId);
+  const summary = await getDashboardSummary(req.auth.userId);
   res.status(200).json(summary);
-}
+});

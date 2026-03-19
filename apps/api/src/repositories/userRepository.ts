@@ -1,4 +1,4 @@
-import { getNextId, readStore, runInStoreTransaction, type UserEntity } from "../db/client.js";
+import { getNextId, usersCollection, type UserEntity } from "../db/client.js";
 
 export interface UserRecord {
   id: number;
@@ -18,34 +18,29 @@ function mapUser(user: UserEntity): UserRecord {
   };
 }
 
-export function createUser(name: string, email: string, passwordHash: string): UserRecord {
-  return runInStoreTransaction((store) => {
-    const now = new Date().toISOString();
+export async function createUser(name: string, email: string, passwordHash: string): Promise<UserRecord> {
+  const now = new Date().toISOString();
 
-    const user: UserEntity = {
-      id: getNextId("users", store),
-      name,
-      email,
-      passwordHash,
-      createdAt: now
-    };
+  const user: UserEntity = {
+    id: await getNextId("users"),
+    name,
+    email,
+    passwordHash,
+    createdAt: now
+  };
 
-    store.users.push(user);
-
-    return mapUser(user);
-  });
+  await usersCollection().insertOne(user);
+  return mapUser(user);
 }
 
-export function findUserByEmail(email: string): UserRecord | null {
-  const store = readStore();
-  const user = store.users.find((candidate) => candidate.email === email);
+export async function findUserByEmail(email: string): Promise<UserRecord | null> {
+  const user = await usersCollection().findOne({ email });
 
   return user ? mapUser(user) : null;
 }
 
-export function findUserById(id: number): UserRecord | null {
-  const store = readStore();
-  const user = store.users.find((candidate) => candidate.id === id);
+export async function findUserById(id: number): Promise<UserRecord | null> {
+  const user = await usersCollection().findOne({ id });
 
   return user ? mapUser(user) : null;
 }

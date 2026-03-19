@@ -11,14 +11,14 @@ function normalizeEmail(email: string): string {
 
 export async function register(payload: RegisterPayload): Promise<AuthResponse> {
   const email = normalizeEmail(payload.email);
-  const existingUser = findUserByEmail(email);
+  const existingUser = await findUserByEmail(email);
 
   if (existingUser) {
     throw new HttpError(409, "An account with this email already exists");
   }
 
   const passwordHash = await hashPassword(payload.password);
-  const user = createUser(payload.name.trim(), email, passwordHash);
+  const user = await createUser(payload.name.trim(), email, passwordHash);
 
   const token = issueAuthToken({
     userId: user.id,
@@ -37,7 +37,7 @@ export async function register(payload: RegisterPayload): Promise<AuthResponse> 
 
 export async function login(payload: LoginPayload): Promise<AuthResponse> {
   const email = normalizeEmail(payload.email);
-  const user = findUserByEmail(email);
+  const user = await findUserByEmail(email);
 
   if (!user) {
     throw new HttpError(401, "Invalid email or password");

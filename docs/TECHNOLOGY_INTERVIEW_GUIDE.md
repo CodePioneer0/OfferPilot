@@ -297,29 +297,29 @@ A: It ensures the same source of truth for payload and response types across the
 Q: Is this same as OpenAPI generation?
 A: It is a manual contract-sharing approach. OpenAPI adds external schema/document generation and client generation workflows.
 
-## 13) File-Backed JSON Data Store
+## 13) MongoDB
 
 ### What it is
-A lightweight custom persistence layer storing entities in a JSON file with transaction-style helper.
+A document database used as the primary persistence layer for users, applications, and interview events.
 
 ### Why we used it
-- Zero external database dependency for easy project setup.
-- Keeps repo runnable in constrained environments.
+- Supports production-style indexing and query flexibility.
+- Provides atomic update primitives used for deterministic numeric ID counters.
 
 ### Where it appears
-- Store primitives: `apps/api/src/db/client.ts`
+- Connection and collection helpers: `apps/api/src/db/client.ts`
 - Repositories: `apps/api/src/repositories/*`
 
 ### Tradeoff
-- Not suitable for high concurrency, heavy writes, or large datasets.
+- Adds an external dependency (MongoDB server) to local/dev environments.
 
 ### Interview Questions and Answers
 
-Q: Why not PostgreSQL from day one?
-A: For this version, setup simplicity and reviewer reproducibility were prioritized. The architecture is already repository-based, so migration to SQL is straightforward.
+Q: Why MongoDB for this project?
+A: The document model maps well to application and event records while still supporting efficient querying and indexing for dashboard use cases.
 
-Q: What are limitations of this store?
-A: Single-process assumptions, lack of advanced query indexing, and no multi-instance write coordination.
+Q: How do you generate numeric IDs in MongoDB?
+A: A dedicated `counters` collection uses atomic `$inc` updates per entity type to produce deterministic sequential IDs.
 
 ## 14) Vitest
 
@@ -384,7 +384,7 @@ A: It standardizes base URL usage, token headers, and API error conversion to a 
 
 ## 17) Practical "Why this stack" Summary You Can Say in Interviews
 
-I chose a TypeScript-first full-stack setup to maximize correctness and developer speed. Express plus layered backend structure demonstrates production architecture habits. React and Vite provide modern frontend experience. Shared contracts reduce integration bugs. Integration tests and strict type checks provide delivery confidence. I intentionally used a lightweight file store for frictionless setup, while keeping repository abstraction so database migration remains low-risk.
+I chose a TypeScript-first full-stack setup to maximize correctness and developer speed. Express plus layered backend structure demonstrates production architecture habits. React and Vite provide modern frontend experience. Shared contracts reduce integration bugs. Integration tests and strict type checks provide delivery confidence. MongoDB provides production-style persistence while repository abstraction keeps future database migrations low-risk.
 
 ## 18) High-Value Interview Questions You Should Practice
 

@@ -16,20 +16,23 @@ import {
 import { createInterviewEvent, listInterviewEvents } from "../repositories/eventRepository.js";
 import { HttpError } from "../utils/httpError.js";
 
-export function listApplications(userId: number): Application[] {
+export async function listApplications(userId: number): Promise<Application[]> {
   return listApplicationsByUser(userId);
 }
 
-export function createApplication(userId: number, payload: CreateApplicationPayload): Application {
+export async function createApplication(
+  userId: number,
+  payload: CreateApplicationPayload
+): Promise<Application> {
   return createApplicationForUser(userId, payload);
 }
 
-export function updateApplication(
+export async function updateApplication(
   userId: number,
   applicationId: number,
   payload: UpdateApplicationPayload
-): Application {
-  const updated = updateApplicationForUser(applicationId, userId, payload);
+): Promise<Application> {
+  const updated = await updateApplicationForUser(applicationId, userId, payload);
 
   if (!updated) {
     throw new HttpError(404, "Application not found");
@@ -38,32 +41,35 @@ export function updateApplication(
   return updated;
 }
 
-export function deleteApplication(userId: number, applicationId: number): void {
-  const deleted = deleteApplicationForUser(applicationId, userId);
+export async function deleteApplication(userId: number, applicationId: number): Promise<void> {
+  const deleted = await deleteApplicationForUser(applicationId, userId);
 
   if (!deleted) {
     throw new HttpError(404, "Application not found");
   }
 }
 
-function assertApplicationOwnership(userId: number, applicationId: number): void {
-  const application = getApplicationByIdForUser(applicationId, userId);
+async function assertApplicationOwnership(userId: number, applicationId: number): Promise<void> {
+  const application = await getApplicationByIdForUser(applicationId, userId);
 
   if (!application) {
     throw new HttpError(404, "Application not found");
   }
 }
 
-export function createApplicationEvent(
+export async function createApplicationEvent(
   userId: number,
   applicationId: number,
   payload: CreateInterviewEventPayload
-): InterviewEvent {
-  assertApplicationOwnership(userId, applicationId);
+): Promise<InterviewEvent> {
+  await assertApplicationOwnership(userId, applicationId);
   return createInterviewEvent(userId, applicationId, payload);
 }
 
-export function listApplicationEvents(userId: number, applicationId: number): InterviewEvent[] {
-  assertApplicationOwnership(userId, applicationId);
+export async function listApplicationEvents(
+  userId: number,
+  applicationId: number
+): Promise<InterviewEvent[]> {
+  await assertApplicationOwnership(userId, applicationId);
   return listInterviewEvents(userId, applicationId);
 }

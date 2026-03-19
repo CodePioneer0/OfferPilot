@@ -156,12 +156,12 @@ Data Rules:
 
 - Single user context per account session
 - Initial deployment targets local/self-hosted setup
-- Current persistence is file-backed and suitable for MVP scale
+- Current persistence uses MongoDB and is suitable for MVP-to-growth scale
 - Internet connectivity is not required for core local app usage
 
 ## 11. Constraints
 
-- No external database dependency in current version
+- Requires MongoDB availability in local and deployment environments
 - Stateless JWT auth without refresh-token lifecycle in MVP
 - No background worker architecture in current scope
 
@@ -233,10 +233,10 @@ Won't Have (Current MVP):
 
 ## 16. Risk Analysis
 
-Risk R-001: File-backed storage scaling limits
+Risk R-001: MongoDB configuration or connectivity failures
 - Impact: Medium
 - Likelihood: Medium
-- Mitigation: Keep repository abstraction and migrate to PostgreSQL in next phase.
+- Mitigation: Use environment validation, health checks, and deployment-level connection monitoring.
 
 Risk R-002: Token handling security mistakes
 - Impact: High

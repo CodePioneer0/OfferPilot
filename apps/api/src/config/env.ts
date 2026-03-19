@@ -7,7 +7,8 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(4000),
   JWT_SECRET: z.string().min(16, "JWT_SECRET must have at least 16 characters"),
-  DB_PATH: z.string().min(1).default("./offerpilot.db"),
+  MONGO_URI: z.string().url().default("mongodb://127.0.0.1:27017"),
+  MONGO_DB_NAME: z.string().min(1).default("offerpilot"),
   CLIENT_ORIGIN: z.string().url().default("http://localhost:5173")
 });
 

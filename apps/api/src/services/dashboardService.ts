@@ -7,20 +7,20 @@ import {
 } from "../repositories/applicationRepository.js";
 import { countInterviewsForMonth } from "../repositories/eventRepository.js";
 
-export function getDashboardSummary(userId: number): DashboardSummary {
-  const totalApplications = countApplicationsForUser(userId);
-  const activePipeline = countApplicationsByStages(userId, [
+export async function getDashboardSummary(userId: number): Promise<DashboardSummary> {
+  const totalApplications = await countApplicationsForUser(userId);
+  const activePipeline = await countApplicationsByStages(userId, [
     "Applied",
     "Phone Screen",
     "Technical Round",
     "Final Round"
   ]);
-  const offers = countApplicationsByStages(userId, ["Offer"]);
-  const rejections = countApplicationsByStages(userId, ["Rejected"]);
+  const offers = await countApplicationsByStages(userId, ["Offer"]);
+  const rejections = await countApplicationsByStages(userId, ["Rejected"]);
 
   const now = new Date();
   const monthPrefix = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
-  const interviewsThisMonth = countInterviewsForMonth(userId, monthPrefix);
+  const interviewsThisMonth = await countInterviewsForMonth(userId, monthPrefix);
 
   return {
     totalApplications,
@@ -28,6 +28,6 @@ export function getDashboardSummary(userId: number): DashboardSummary {
     offers,
     rejections,
     interviewsThisMonth,
-    stageBreakdown: getStageBreakdown(userId)
+    stageBreakdown: await getStageBreakdown(userId)
   };
 }

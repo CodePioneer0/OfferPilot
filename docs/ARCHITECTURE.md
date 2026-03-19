@@ -20,7 +20,7 @@ The backend applies `route -> controller -> service -> repository` flow.
 
 ## Data Model
 
-The API persists to a JSON store (`DB_PATH`) with three core entities.
+The API persists to MongoDB (`MONGO_URI`, `MONGO_DB_NAME`) with three core collections.
 
 - `users`
   - `id`, `name`, `email`, `passwordHash`, `createdAt`
@@ -29,7 +29,7 @@ The API persists to a JSON store (`DB_PATH`) with three core entities.
 - `interviewEvents`
   - `id`, `userId`, `applicationId`, `type`, `description`, `occurredOn`, `createdAt`
 
-Counters are maintained in the store for deterministic ID generation.
+Counters are maintained in a dedicated `counters` collection for deterministic numeric ID generation.
 
 ## Request Lifecycle
 
@@ -38,7 +38,7 @@ Counters are maintained in the store for deterministic ID generation.
 3. Auth middleware validates JWT for protected routes.
 4. Controller extracts request values and calls service.
 5. Service applies business rules and uses repository.
-6. Repository reads/writes store and returns mapped DTO.
+6. Repository reads/writes MongoDB collections and returns mapped DTO.
 7. Error middleware normalizes failures into JSON responses.
 
 ## Security and Reliability Notes

@@ -1,18 +1,18 @@
 import request from "supertest";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
+import { clearDatabase } from "../db/client.js";
 import { initializeDatabase } from "../db/init.js";
-import { resetStore } from "../db/client.js";
 import { createServer } from "../server.js";
 
 const app = createServer();
 
-beforeAll(() => {
-  initializeDatabase();
+beforeAll(async () => {
+  await initializeDatabase();
 });
 
-beforeEach(() => {
-  resetStore();
+beforeEach(async () => {
+  await clearDatabase();
 });
 
 describe("OfferPilot API", () => {

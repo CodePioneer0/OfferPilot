@@ -224,10 +224,10 @@ Runtime config belongs in environment variables, not hardcoded values.
 
 ---
 
-## 11) File-Backed Data Store
+## 11) MongoDB Data Layer
 
 ### What you should know
-The project uses JSON file persistence for easy setup, with repository abstraction for future DB migration.
+The project uses MongoDB persistence through repository abstractions to keep domain logic decoupled from storage details.
 
 ### Where to study
 - `apps/api/src/db/client.ts`
@@ -235,11 +235,11 @@ The project uses JSON file persistence for easy setup, with repository abstracti
 
 ### Practical task
 - Create records from UI.
-- Open the JSON store file and inspect structure.
-- Identify how IDs are generated.
+- Inspect Mongo collections (`users`, `applications`, `interviewEvents`, `counters`).
+- Identify how IDs are generated through atomic `$inc` updates.
 
 ### Interview-ready explanation
-"I used file storage for portability, but kept repository boundaries so moving to PostgreSQL later is straightforward."
+"I used MongoDB for practical production-style persistence, while keeping repository boundaries so future SQL migration remains straightforward."
 
 ---
 

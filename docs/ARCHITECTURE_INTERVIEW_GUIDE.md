@@ -68,12 +68,12 @@ Why:
 
 ### Data Store Layer
 
-- File-backed JSON with transaction-like write helper.
+- MongoDB collections with indexed fields and atomic counter-based IDs.
 
 Why:
 
-- No external DB dependency for easy setup.
-- Still demonstrates persistence abstraction via repository boundary.
+- Demonstrates production-style persistence patterns (indexes and atomic updates).
+- Still keeps storage details isolated behind repository boundaries.
 
 ## 4) End-to-End Request Flow
 
@@ -189,7 +189,7 @@ Next testing layers (recommended):
 
 ## 11) Important Tradeoffs You Should Say in Interviews
 
-- Chose file-backed storage for easy setup and reproducibility.
+- Chose MongoDB for production-style persistence and flexible querying.
 - Preserved upgrade path by isolating persistence in repositories.
 - Chose JWT simplicity now, with refresh-token extension path later.
 - Prioritized architecture clarity over adding too many features.
@@ -198,7 +198,7 @@ Next testing layers (recommended):
 
 If traffic grows:
 
-1. Replace JSON store with PostgreSQL.
+1. Replace MongoDB repository internals with PostgreSQL/ORM queries if SQL constraints become the priority.
 2. Add caching for read-heavy summary endpoints.
 3. Add background jobs for reminders and async tasks.
 4. Add structured logging + metrics + tracing.
@@ -243,4 +243,4 @@ A: Clear ownership by layer enables parallel work, easier code reviews, and lowe
 
 ## 14) 60-Second Architecture Pitch (Memorize This)
 
-OfferPilot is a TypeScript monorepo with a React frontend, Express API, and shared contract package. The backend uses a layered design where routes define endpoints, controllers handle HTTP concerns, services hold business logic, and repositories isolate persistence. Input validation and auth happen in middleware before business logic executes. The frontend uses a centralized API client and component-based UI for maintainability. I chose a lightweight file store for zero-setup reproducibility, while preserving migration readiness by keeping data access abstracted. The result is a clean, testable architecture that is easy to explain, extend, and productionize.
+OfferPilot is a TypeScript monorepo with a React frontend, Express API, and shared contract package. The backend uses a layered design where routes define endpoints, controllers handle HTTP concerns, services hold business logic, and repositories isolate persistence. Input validation and auth happen in middleware before business logic executes. The frontend uses a centralized API client and component-based UI for maintainability. I chose MongoDB for practical production-style persistence, while preserving migration readiness by keeping data access abstracted behind repositories. The result is a clean, testable architecture that is easy to explain, extend, and productionize.
